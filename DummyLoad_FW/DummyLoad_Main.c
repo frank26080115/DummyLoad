@@ -22,7 +22,6 @@
 #define ENABLE_USB
 #define ENABLE_CONSOLE
 #define ENABLE_CURRENT_ERROR_WARN // this won't work unless LEDs are enabled
-#define ENABLE_BAD_CKT_FIX
 
 // hardware definitions
 
@@ -506,16 +505,7 @@ int main(void)
 			
 				showSetTimer = 4;
 			}
-		}		
-		
-		#ifdef ENABLE_BAD_CKT_FIX
-		char oldLedBlue = bit_is_set(LED_BLUE_PORTx, LED_BLUE_PINNUM);
-		char oldLedOrange = bit_is_set(LED_ORANGE_PORTx, LED_ORANGE_PINNUM);
-		LED_BLUE_PORTx &= ~_BV(LED_BLUE_PINNUM);
-		LED_ORANGE_PORTx &= ~_BV(LED_ORANGE_PINNUM);
-		ENC_PUSH_DDRx &= ~_BV(ENC_PUSH_PINNUM);
-		_delay_us(10);
-		#endif
+		}
 		
 		#ifdef ENABLE_ENC_PUSH
 		// if somebody wants to see the setting instead of reading but without having to change it, push the button
@@ -532,15 +522,8 @@ int main(void)
 		{
 			#ifdef ENABLE_ENC_LOCK
 			pushHoldCnt = 0;
-			#endif			
+			#endif
 		}
-		
-		#ifdef ENABLE_BAD_CKT_FIX
-		ENC_PUSH_DDRx |= _BV(ENC_PUSH_PINNUM);
-		if (oldLedBlue) LED_BLUE_PORTx |= _BV(LED_BLUE_PINNUM);
-		if (oldLedOrange) LED_ORANGE_PORTx |= _BV(LED_ORANGE_PINNUM);
-		_delay_us(100);
-		#endif
     }
 }
 
