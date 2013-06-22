@@ -186,7 +186,7 @@ int main(void)
 		}		
 
 		if (tmr1OvfCnt >= 25 || encDoNotDec != 0)
-		{			
+		{
 			// spit out data to USB, the counter gives each line a timestamp
 			if (isOutputting != 0 && tmr1OvfCnt >= 25)
 			{
@@ -197,7 +197,7 @@ int main(void)
 				spitData();
 			}
 			
-			tmr1OvfCnt = 0;
+			tmr1OvfCnt = tmr1OvfCnt >= 25 ? 0 : tmr1OvfCnt;
 			
 			// show info on LCD
 			lcd_setPos(0, 1);
