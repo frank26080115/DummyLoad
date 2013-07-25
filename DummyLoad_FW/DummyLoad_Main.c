@@ -147,7 +147,7 @@ int main(void)
 
 	// start timer, trigger every 0.01s
 	TCCR1B = _BV(WGM12) | 0x02;
-	OCR1A = 31250; // this should not be lower than 500
+	OCR1A = 10000; // this should not be lower than 500
 	TIMSK1 |= _BV(OCIE1A);
 
 	// setup external interrupts on encoder inputs (INT2 and INT3), any edge
@@ -381,6 +381,7 @@ int main(void)
 				calibration.currentOffset = takeAverage(EXADC_CURRENT_CHAN, 20); // average with rounding
 				eeprom_update_block((void*)(&calibration), CALIBRATION_EEPROM_ADDR, sizeof(calibration_t));
 				ser_printf("currentOffset = %d\r\n", calibration.currentOffset);
+				dac_write(setRawCurrent); // restore last setting
 			}
 			else if (memcmp(serInputBuffer, "caliamps:", 9) == 0 && serInputBufferIdx > 9)
 			{
@@ -393,7 +394,7 @@ int main(void)
 						if (dac_last >= 100)
 						{
 							calibration.currentDacScale = d / (double)dac_last;
-							calibration.currentAdcScale = d / (double)(takeAverage(EXADC_CURRENT_CHAN, 20));
+							calibration.currentAdcScale = d / (double)(takeAverage(EXADC_CURRENT_CHAN, 20) - calibration.currentOffset);
 							eeprom_update_block((void*)(&calibration), CALIBRATION_EEPROM_ADDR, sizeof(calibration_t));
 							ser_printf("currentAdcScale = %.8f\r\n", calibration.currentAdcScale);
 							ser_printf("currentDacScale = %.8f\r\n", calibration.currentDacScale);
@@ -413,6 +414,7 @@ int main(void)
 						calibration.currentOffset = takeAverage(EXADC_CURRENT_CHAN, 20);
 						eeprom_update_block((void*)(&calibration), CALIBRATION_EEPROM_ADDR, sizeof(calibration_t));
 						ser_printf("currentOffset = %d\r\n", calibration.currentOffset);
+						dac_write(setRawCurrent); // restore last setting
 					}
 					else
 					{
@@ -434,15 +436,17 @@ int main(void)
 				{
 					if (d < 8.8d && d > 0.0d) {
 						dac_write(0);
-						calibration.voltageScale = d / ((double)takeAverage(EXADC_VOLTAGE_CHAN, 20));
+						calibration.voltageScale = d / ((double)takeAverage(EXADC_VOLTAGE_CHAN, 20) - calibration.voltageOffset);
 						eeprom_update_block((void*)(&calibration), CALIBRATION_EEPROM_ADDR, sizeof(calibration_t));
 						ser_printf("voltageScale = %.8f\r\n", calibration.voltageScale);
+						dac_write(setRawCurrent); // restore last setting
 					}
 					else if (d == 0.0d) {
 						dac_write(0);
 						calibration.voltageOffset = takeAverage(EXADC_VOLTAGE_CHAN, 20);
 						eeprom_update_block((void*)(&calibration), CALIBRATION_EEPROM_ADDR, sizeof(calibration_t));
 						ser_printf("voltageOffset = %d\r\n", calibration.voltageOffset);
+						dac_write(setRawCurrent); // restore last setting
 					}
 					else {
 						ser_printf("out of range\r\n");
